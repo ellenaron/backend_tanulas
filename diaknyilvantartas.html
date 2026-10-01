@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projektfeladat: Iskolai Nyilvántartó REST API</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #0ea5e9;
+      --success: #16a34a;
+      --warn: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card-bg);
+      padding: 2.5rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: var(--primary-dark);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+
+    p.lead {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    /* Statisztika és Progress sáv */
+    .progress-sticky {
+      position: sticky;
+      top: 1rem;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07);
+      margin-bottom: 2rem;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .progress-bar-bg {
+      background: var(--border);
+      height: 10px;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    section {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      color: #0f172a;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: var(--primary-dark);
+    }
+
+    /* Időkeret táblázat */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+
+    /* Kiemelt dobozok kezdőknek */
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+    }
+
+    .callout-warn {
+      background: #fffbeb;
+      border-left-color: var(--warn);
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    /* Interaktív checklist */
+    .task-list {
+      list-style: none;
+      margin-top: 1rem;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.85rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .task-item:hover {
+      background: #f8fafc;
+    }
+
+    .task-item input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin-top: 0.2rem;
+    }
+
+    .task-item label {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .task-item.completed label {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* Végpont kártyák */
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: monospace;
+      font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      background: #f1f5f9;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .method {
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 0.8rem;
+    }
+
+    .method-get { background: var(--accent); }
+    .method-post { background: var(--success); }
+    .method-delete { background: #ef4444; }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 3rem;
+      padding-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <header>
+      <span class="badge">Backend Alapok • 1. Önálló Projektfeladat</span>
+      <h1>Iskolai Nyilvántartó REST API</h1>
+      <p class="lead">Két táblás nyilvántartás megvalósítása Node.js és Express környezetben, először JSON fájlkezeléssel, majd MySQL adatbázissal.</p>
+    </header>
+
+    <!-- Haladási sáv -->
+    <div class="progress-sticky">
+      <div class="progress-info">
+        <span>Projekt haladás</span>
+        <span id="progress-percent">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Időkeret és tervezés -->
+    <section>
+      <h2>⏱️ Időkeret és Projektterv (Összesen: 4 tanóra / 180 perc)</h2>
+      <p>Mivel ez az első összetett, önálló projekted, tartsd be a tervezett fázisokat! Ne ugorj rögtön kódolni anélkül, hogy végiggondolnád az adatok felépítését.</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Fázis</th>
+            <th>Tevékenység</th>
+            <th>Javasolt idő</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Fázis</strong></td>
+            <td>Projekt előkészítése, mappa- és csomagtelepítés, adatmodellezés</td>
+            <td>30 perc</td>
+          </tr>
+          <tr>
+            <td><strong>2. Fázis</strong></td>
+            <td>JSON-alapú szerver és a kapcsolódó végpontok megírása, tesztelése</td>
+            <td>60 perc</td>
+          </tr>
+          <tr>
+            <td><strong>3. Fázis</strong></td>
+            <td>MySQL adatbázis és táblák létrehozása, SQL kapcsolat bekötése</td>
+            <td>45 perc</td>
+          </tr>
+          <tr>
+            <td><strong>4. Fázis</strong></td>
+            <td>MySQL-alapú végpontok megírása, integrált tesztelés és hibakezelés</td>
+            <td>45 perc</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Feladat részletei -->
+    <section>
+      <h2>🎯 A Feladat Célja és Specifikációja</h2>
+      <p>Egy olyan REST API-t kell készítened, amely képes egy iskola **osztályait** és az osztályokba járó **diákokat** kezelni. A rendszernek két adatforrással is működőképesnek kell lennie:</p>
+      
+      <div class="callout">
+        <p><strong>Fontos elv:</strong> A két megvalósítás alatt az adatok szerkezetének és a végpontok működésének azonosnak kell lennie. A kliens felé ugyanazokat a mezőket és státuszkódokat kell biztosítanod!</p>
+      </div>
+
+      <h3>Adatmodell (2 összefüggő entitás)</h3>
+      <ul>
+        <li><strong>Osztályok (osztalyok):</strong>
+          <ul>
+            <li><code>id</code>: Egyedi azonosító (pozitív egész szám).</li>
+            <li><code>nev</code>: Az osztály megnevezése (szöveg).</li>
+            <li><code>szak</code>: Képzési szakirány megnevezése (szöveg).</li>
+            <li><code>evfolyam</code>: Évfolyam száma (egész szám).</li>
+          </ul>
+        </li>
+        <li style="margin-top: 0.5rem;"><strong>Diákok (diakok):</strong>
+          <ul>
+            <li><code>id</code>: Egyedi azonosító (pozitív egész szám).</li>
+            <li><code>nev</code>: A diák teljes neve (szöveg).</li>
+            <li><code>email</code>: A diák érvényes email címe (szöveg).</li>
+            <li><code>osztaly_id</code>: <strong>Idegen kulcs</strong>, amely a létező osztály <code>id</code> mezőjére hivatkozik!</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <p><strong>Figyelem (Integritási szabály):</strong> Nem vehetsz fel olyan diákot, akinek az <code>osztaly_id</code>-ja nem létezik az osztályok között! Hasonlóképpen: nem törölhetsz ki olyan osztályt, amelyhez még tartoznak aktív diákok.</p>
+      </div>
+    </section>
+
+    <!-- Elvárt Végpontok -->
+    <section>
+      <h2>📡 Megvalósítandó REST Végpontok</h2>
+      <p>Mind a JSON, mind a MySQL verzióban biztosítani kell az alábbi műveleteket:</p>
+
+      <h3>1. Osztályok kezelése</h3>
+      <div class="endpoint">
+        <span class="method method-get">GET</span>
+        <span>/osztalyok</span>
+        <span>— Összes osztály listázása</span>
+      </div>
+      <div class="endpoint">
+        <span class="method method-post">POST</span>
+        <span>/osztalyok</span>
+        <span>— Új osztály rögzítése (body ellenőrzéssel)</span>
+      </div>
+      <div class="endpoint">
+        <span class="method method-delete">DELETE</span>
+        <span>/osztalyok/:id</span>
+        <span>— Osztály törlése (csak ha üres!)</span>
+      </div>
+
+      <h3>2. Relációs lekérdezés</h3>
+      <div class="endpoint">
+        <span class="method method-get">GET</span>
+        <span>/osztalyok/:id/diakok</span>
+        <span>— Egy adott osztályhoz tartozó összes diák listázása</span>
+      </div>
+
+      <h3>3. Diákok kezelése</h3>
+      <div class="endpoint">
+        <span class="method method-get">GET</span>
+        <span>/diakok</span>
+        <span>— Összes diák listázása (az osztály nevével kiegészítve!)</span>
+      </div>
+      <div class="endpoint">
+        <span class="method method-post">POST</span>
+        <span>/diakok</span>
+        <span>— Új diák rögzítése (létező osztály_id ellenőrzésével)</span>
+      </div>
+    </section>
+
+    <!-- Interaktív Lépések / Checklist -->
+    <section>
+      <h2>✅ Lépésről Lépésre Teendők (Pipáld, ha kész!)</h2>
+      <p>Haladj sorban! Ha elakadsz, ellenőrizd az aktuális fázishoz tartozó feltételeket.</p>
+
+      <ul class="task-list" id="taskList">
+        <li class="task-item">
+          <input type="checkbox" id="t1">
+          <label for="t1"><strong>1. Alapok létrehozása:</strong> Projekt mappa elkészítése, <code>npm init -y</code> futtatása, szükséges csomagok telepítése (<code>express</code>, <code>mysql2</code>, <code>dotenv</code>, <code>nodemon</code>).</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t2">
+          <label for="t2"><strong>2. JSON struktúra megtervezése:</strong> Hozz létre egy üres adatstruktúrájú <code>.json</code> fájlt, amely egy objektumban két üres tömböt tartalmaz: <code>osztalyok</code> és <code>diakok</code>.</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t3">
+          <label for="t3"><strong>3. JSON szerver indítása:</strong> Készítsd el az Express szervert, állítsd be az <code>express.json()</code> middleware-t, hogy tudd fogadni a POST kérések törzsét.</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t4">
+          <label for="t4"><strong>4. JSON végpontok kódolása:</strong> Írd meg a fájlolvasást és -írást (<code>fs/promises</code>). Figyelj az automatikus ID-kiosztásra új rekord esetén!</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t5">
+          <label for="t5"><strong>5. JSON relációk kezelése:</strong> Gondoskodj arról a kódban, hogy a diákok listázásakor megkeresed az osztály nevét is, illetve törléskor ellenőrzöd a függőséget!</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t6">
+          <label for="t6"><strong>6. JSON tesztelés:</strong> Teszteld le az összes JSON végpontot Postmanben vagy Thunder Clientben (GET, POST, DELETE, hibás ID-k)!</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t7">
+          <label for="t7"><strong>7. Adatbázis létrehozása:</strong> Készíts el MySQL-ben egy adatbázist, valamint a két táblát (<code>osztalyok</code>, <code>diakok</code>). Állítsd be az elsődleges kulcsokat (AUTO_INCREMENT) és az idegen kulcsot (FOREIGN KEY)!</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t8">
+          <label for="t8"><strong>8. MySQL kapcsolat:</strong> Hozz létre kapcsolati pool-t (Connection Pool) a szerveren a <code>mysql2/promise</code> segítségével, a hitelesítési adatokat <code>.env</code> fájlból olvasd be!</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t9">
+          <label for="t9"><strong>9. MySQL végpontok kódolása:</strong> Írd meg az SQL lekérdezéseket. Használj <code>INNER JOIN</code>-t a diákok listázásához, és paraméterezett lekérdezéseket (<code>?</code> jeleket) az SQL injection megelőzésére!</label>
+        </li>
+        <li class="task-item">
+          <input type="checkbox" id="t10">
+          <label for="t10"><strong>10. Végső ellenőrzés és hibakezelés:</strong> Ellenőrizd a státuszkódokat (200, 201, 204, 400, 404, 409). Győződj meg róla, hogy a szerver nem omlik össze érvénytelen kéréseknél!</label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Értékelési segédlet -->
+    <section>
+      <h2>📋 Önértékelési Segédlet (Kész vagy-e?)</h2>
+      <p>Mielőtt leadod a feladatot, ellenőrizd az alábbi 4 leggyakoribb kezdő hibát:</p>
+      <ul style="padding-left: 1.25rem; margin-top: 0.5rem;">
+        <li>Nem felejtetted el a <code>body-parser</code> / <code>express.json()</code> bekapcsolását? (Különben a POST törzs <code>undefined</code> lesz).</li>
+        <li>MySQL-ben paraméterezett lekérdezéseket használtál (nem szövegösszefűzéssel illesztetted be a változókat)?</li>
+        <li>A GET kérések megfelelő JSON formátumban adják vissza a választ?</li>
+        <li>Kezelted a <code>try ... catch</code> blokkokban a lehetséges hibákat?</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Sikeres önálló munkát és jó hibakeresést kívánunk!</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // Interaktív állapotkezelés és localStorage mentés
+    const checkboxes = document.querySelectorAll('#taskList input[type="checkbox"]');
+    const progressFill = document.getElementById('progress-fill');
+    const progressPercent = document.getElementById('progress-percent');
+
+    function updateProgress() {
+      const total = checkboxes.length;
+      let checkedCount = 0;
+
+      checkboxes.forEach((cb, index) => {
+        const item = cb.closest('.task-item');
+        if (cb.checked) {
+          checkedCount++;
+          item.classList.add('completed');
+          localStorage.setItem('task_' + index, 'true');
+        } else {
+          item.classList.remove('completed');
+          localStorage.removeItem('task_' + index);
+        }
+      });
+
+      const percent = Math.round((checkedCount / total) * 100);
+      progressFill.style.width = percent + '%';
+      progressPercent.textContent = percent + '%';
+    }
+
+    // Mentett állapot visszatöltése
+    checkboxes.forEach((cb, index) => {
+      if (localStorage.getItem('task_' + index) === 'true') {
+        cb.checked = true;
+      }
+      cb.addEventListener('change', updateProgress);
+    });
+
+    // Kezdeti állapot inicializálása
+    updateProgress();
+  </script>
+</body>
+</html>
