@@ -10,6 +10,30 @@ app.get("/", (req, res) => {
     return res.send("This is working!");
 });
 
+app.get("/osztalyok", (req, res) => {
+
+});
+
+app.post("/osztalyok", (req, res) => {
+
+});
+
+app.delete("/osztalyok/:id", (req, res) => {
+
+});
+
+app.get("/osztalyok/:id/diakok", (req, res) => {
+
+});
+
+app.get("/diakok", (req, res) => {
+
+});
+
+app.post("/diakok", (req, res) => {
+
+});
+
 app.listen(8080, () => {
     console.log("Server running on: http://localhost:8080/");
-})
+});
