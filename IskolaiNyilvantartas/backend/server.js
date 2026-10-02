@@ -1,7 +1,6 @@
 import express from "express";
 import mysql from "mysql2";
 import dotenv from "dotenv";
-import fs from "fs/promises";
 dotenv.config();
 
 const app = express();
@@ -32,7 +31,7 @@ app.get("/osztalyok", (req, res) => {
 });
 
 app.post("/osztalyok", (req, res) => {
-    const {nev, szak, evfolyam} = req.body;
+    const { nev, szak, evfolyam } = req.body;
     if (!nev || !szak || !evfolyam) return res.status(400).send("Missing crutual data.");
 
     con.connect(function(err) {
@@ -88,7 +87,7 @@ app.get("/diakok", (req, res) => {
         if (err) return res.status(500).send(err);
 
         let sql = "SELECT d.id as id, d.nev as nev, d.email as email, o.nev as osztalynev FROM diakok d INNER JOIN osztalyok o ON d.osztaly_id = o.id";
-        con.query(sql, [id], function(err, result) {
+        con.query(sql, function(err, result) {
             if (err) return res.status(500).send(err);
             return res.status(200).json(result);
         });
@@ -96,7 +95,17 @@ app.get("/diakok", (req, res) => {
 });
 
 app.post("/diakok", (req, res) => {
+    const { nev, email, osztalyId } = req.body;
 
+    con.connect(function(err) {
+        if (err) return res.status(500).send(err);
+
+        let sql = "INSERT INTO diakok (nev, email, osztaly_id) VALUES (?, ?, ?)";
+        con.query(sql, [nev, email, osztalyId], function(err, result) {
+            if (err) return res.status(500).send(err);
+            return res.status(201).send("Diák felvéve");
+        })
+    })
 });
 
 app.listen(8080, () => {
