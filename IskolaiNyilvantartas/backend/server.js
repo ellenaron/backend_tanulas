@@ -75,16 +75,24 @@ app.get("/osztalyok/:id/diakok", async (req, res) => {
     con.connect(function(err) {
         if (err) return res.status(500).send(err);
 
-        let sql = "SELECT d.id as id, d.nev as nev, d.email as email, o.nev as osztalynev FROM diakok d INNER JOIN osztalyok o ON d.osztaly_id = o.id WHERE o.id = ?";
+        let sql = "SELECT * FROM diakok d INNER JOIN osztalyok o ON d.osztaly_id = o.id WHERE o.id = ?";
         con.query(sql, [id], function(err, result) {
             if (err) return res.status(500).send(err);
             return res.status(200).json(result);
-        })
-    })
+        });
+    });
 });
 
 app.get("/diakok", (req, res) => {
+    con.connect(function(err) {
+        if (err) return res.status(500).send(err);
 
+        let sql = "SELECT d.id as id, d.nev as nev, d.email as email, o.nev as osztalynev FROM diakok d INNER JOIN osztalyok o ON d.osztaly_id = o.id";
+        con.query(sql, [id], function(err, result) {
+            if (err) return res.status(500).send(err);
+            return res.status(200).json(result);
+        });
+    });
 });
 
 app.post("/diakok", (req, res) => {
