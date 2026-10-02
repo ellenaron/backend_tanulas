@@ -61,15 +61,26 @@ app.delete("/osztalyok/:id", async (req, res) => {
         const osztalyok = jsonData.osztalyok;
         const diakok = jsonData.diakok;
 
-        let index = 0
-        let exists = false
-        osztalyok.forEach(element => {
-            if (element.id == id) {
-                osztalyok.splice(index, 1);
-                exists = true;
+        let deiakExists = false;
+        diakok.forEach(element => {
+            if (element.id === parseInt(id)) {
+                deiakExists = true;
             }
-            index += 1;
         });
+
+        if (deiakExists) {
+            return res.status(400).send("Error: Az osztályt nem lehet törölni, mert még járnak bele diákok.")
+        } else {
+            let index = 0
+            let exists = false
+            osztalyok.forEach(element => {
+                if (element.id == id) {
+                    osztalyok.splice(index, 1);
+                    exists = true;
+                }
+                index += 1;
+            });
+        }
 
         const newJson = { osztalyok: osztalyok, diakok: diakok }
         await fs.writeFile("data.json", JSON.stringify(newJson, null, 4), "utf-8")
@@ -101,8 +112,21 @@ app.get("/osztalyok/:id/diakok", async (req, res) => {
     }
 });
 
-app.get("/diakok", (req, res) => {
+app.get("/diakok", async (req, res) => {
+    try {
+        const rawData = await fs.readFile("data.json", "utf-8");
+        const jsonData = JSON.parse(rawData);
 
+        const osztalyok = jsonData.osztalyok;
+        const diakok = jsonData.diakok;
+
+        const diakokOsztalynevvel = [];
+        diakok.forEach(element => {
+            
+        });
+    } catch (error) {
+        
+    }
 });
 
 app.post("/diakok", (req, res) => {
