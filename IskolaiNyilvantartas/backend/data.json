@@ -361,6 +361,12 @@
             "nev": "Bálint Csaba",
             "email": "balintcsaba@gmail.com",
             "osztaly_id": 5
+        },
+        {
+            "id": 51,
+            "nev": "tesztnev",
+            "email": "tesztemail",
+            "osztaly_Id": 5
         }
     ]
 }

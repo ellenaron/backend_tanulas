@@ -139,8 +139,29 @@ app.get("/diakok", async (req, res) => {
     }
 });
 
-app.post("/diakok", (req, res) => {
+app.post("/diakok", async (req, res) => {
+    const { nev, email, osztalyId } = req.body;
 
+    try {
+        const rawData = await fs.readFile("data.json", "utf-8");
+        const jsonData = JSON.parse(rawData);
+
+        const osztalyok = jsonData.osztalyok;
+        const diakok = jsonData.diakok;
+
+        diakok.push({
+            id: diakok.length + 1,
+            nev: nev,
+            email: email,
+            osztaly_Id: osztalyId
+        });
+
+        const newJson = { osztalyok: osztalyok, diakok: diakok };
+        await fs.writeFile("data.json", JSON.stringify(newJson, null, 4), "utf-8");
+        return res.status(201).send("Diák hozzáadva")
+    } catch (err) {
+        return res.status(500).send(err);
+    }
 });
 
 app.listen(8080, () => {
