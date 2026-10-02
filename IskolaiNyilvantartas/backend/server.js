@@ -53,6 +53,7 @@ app.post("/osztalyok", async (req, res) => {
 
 app.delete("/osztalyok/:id", async (req, res) => {
     const id = req.params.id;
+
     try {
         const rawData = await fs.readFile("data.json", "utf-8");
         const jsonData = JSON.parse(rawData);
@@ -80,8 +81,24 @@ app.delete("/osztalyok/:id", async (req, res) => {
     }
 });
 
-app.get("/osztalyok/:id/diakok", (req, res) => {
+app.get("/osztalyok/:id/diakok", async (req, res) => {
+    const id = req.params.id
 
+    try {
+        const rawData = await fs.readFile("data.json", "utf-8");
+        const jsonData = JSON.parse(rawData);
+
+        const diakok = jsonData.diakok;
+        const szurtDiakok = [];
+        diakok.forEach(element => {
+            if (element.osztaly_id === parseInt(id)) {
+                szurtDiakok.push(element)
+            }
+        });
+        return res.status(200).json(szurtDiakok);
+    } catch (error) {
+        return res.status(500).send("Error: " + error);
+    }
 });
 
 app.get("/diakok", (req, res) => {
