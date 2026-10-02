@@ -1,5 +1,4 @@
 import express from "express";
-import mysql from "mysql2";
 import dotenv from "dotenv";
 import fs from "fs/promises";
 dotenv.config();
@@ -17,8 +16,8 @@ app.get("/osztalyok", async (req, res) => {
         const jsonData = JSON.parse(rawData);
 
         return res.status(200).json(jsonData);
-    } catch (error) {
-        console.error("Error reading file: ", error)
+    } catch (err) {
+        console.error(err)
     }
 });
 
@@ -46,8 +45,8 @@ app.post("/osztalyok", async (req, res) => {
         await fs.writeFile("data.json", JSON.stringify(newJson, null, 4), "utf-8");
 
         return res.status(201).send("Class created.")
-    } catch (error) {
-        return res.status(500).send("Error: " + error);
+    } catch (err) {
+        return res.status(500).send(err);
     }
 });
 
@@ -87,8 +86,8 @@ app.delete("/osztalyok/:id", async (req, res) => {
 
         if (exists == true) return res.status(200).send("Class deleted.");
         return res.status(400).send("Class does not exist.")
-    } catch (error) {
-        return res.status(500).send("Error: " + error);
+    } catch (err) {
+        return res.status(500).send(err);
     }
 });
 
@@ -107,8 +106,8 @@ app.get("/osztalyok/:id/diakok", async (req, res) => {
             }
         });
         return res.status(200).json(szurtDiakok);
-    } catch (error) {
-        return res.status(500).send("Error: " + error);
+    } catch (err) {
+        return res.status(500).send(err);
     }
 });
 
@@ -121,11 +120,22 @@ app.get("/diakok", async (req, res) => {
         const diakok = jsonData.diakok;
 
         const diakokOsztalynevvel = [];
-        diakok.forEach(element => {
-            
+        diakok.forEach(diak => {
+            osztalyok.forEach(osztaly => {
+                if (osztaly.id === diak.osztaly_id) {
+                    diakokOsztalynevvel.push({
+                        id: diak.id,
+                        nev: diak.nev,
+                        email: diak.email,
+                        osztalynev: osztaly.nev
+                    });
+                }
+            });
         });
-    } catch (error) {
-        
+
+        return res.status(200).json(diakokOsztalynevvel);
+    } catch (err) {
+        return res.status(500).send(err)
     }
 });
 
