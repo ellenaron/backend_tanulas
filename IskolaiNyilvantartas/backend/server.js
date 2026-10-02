@@ -70,23 +70,17 @@ app.delete("/osztalyok/:id", (req, res) => {
 });
 
 app.get("/osztalyok/:id/diakok", async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
 
-    try {
-        const rawData = await fs.readFile("data.json", "utf-8");
-        const jsonData = JSON.parse(rawData);
+    con.connect(function(err) {
+        if (err) return res.status(500).send(err);
 
-        const diakok = jsonData.diakok;
-        const szurtDiakok = [];
-        diakok.forEach(element => {
-            if (element.osztaly_id === parseInt(id)) {
-                szurtDiakok.push(element)
-            }
-        });
-        return res.status(200).json(szurtDiakok);
-    } catch (error) {
-        return res.status(500).send("Error: " + error);
-    }
+        let sql = "SELECT d.id as id, d.nev as nev, d.email as email, o.nev as osztalynev FROM diakok d INNER JOIN osztalyok o ON d.osztaly_id = o.id WHERE o.id = ?";
+        con.query(sql, [id], function(err, result) {
+            if (err) return res.status(500).send(err);
+            return res.status(200).json(result);
+        })
+    })
 });
 
 app.get("/diakok", (req, res) => {
