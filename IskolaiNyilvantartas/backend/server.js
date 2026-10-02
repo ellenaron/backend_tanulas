@@ -19,53 +19,54 @@ app.get("/", (req, res) => {
     return res.send("This is working!");
 });
 
-app.get("/osztalyok", async (req, res) => {
-    try {
-        con.connect(function(err) {
-            if (err) throw new Error(err);
+app.get("/osztalyok", (req, res) => {
+    con.connect(function(err) {
+        if (err) return res.status(500).send(err)
 
-            const sql = "SELECT * FROM osztalyok"
-            con.query(sql, function (err, result) {
-                if (err) throw new Error(err);
-                return res.status(200).json(result)
-            });
-        }) ;
-    } catch (err) {
-        return res.status(500).send(err);
-    }
+        let sql = "SELECT * FROM osztalyok"
+        con.query(sql, function (err, result) {
+            if (err) return res.status(500).send(err)
+            return res.status(200).json(result)
+        });
+    });
 });
 
-app.post("/osztalyok", async (req, res) => {
+app.post("/osztalyok", (req, res) => {
     const {nev, szak, evfolyam} = req.body;
     if (!nev || !szak || !evfolyam) return res.status(400).send("Missing crutual data.");
 
-    try {
-        con.connect(function(err) {
-            if (err) throw new Error(err);
+    con.connect(function(err) {
+        if (err) return res.status(500).send(err)
 
-            const sql = "INSERT INTO osztalyok (nev, szak, evfolyam) values (?, ?, ?)";
-            con.query(sql, [nev, szak, evfolyam], function(err, result) {
-                if (err) throw new Error(err);
-                return res.status(201).send("Osztály létrehozva");
-            });
-        })
-    } catch (err) {
-        return res.status(500).send(err);
-    }
+        let sql = "INSERT INTO osztalyok (nev, szak, evfolyam) values (?, ?, ?)";
+        con.query(sql, [nev, szak, evfolyam], function(err, result) {
+            if (err) return res.status(500).send(err)
+            return res.status(201).send("Osztály létrehozva");
+        });
+    })
 });
 
-app.delete("/osztalyok/:id", async (req, res) => {
+app.delete("/osztalyok/:id", (req, res) => {
     const id = req.params.id;
 
-    try {
-        con.connect(function(err) {
-            if (err) throw new Error(err);
+    con.connect(function(err) {
+        if (err) throw new Error(err);
 
-            const sql = "SELECT COUNT(id) FROM "
+        let sql = "SELECT COUNT(id) AS diakszam FROM diakok WHERE osztaly_id = ?";
+        con.query(sql, [id], function(err, result) {
+            if (err) {
+                return res.status(500).send(err)
+            } else if (result[0].diakszam > 0) {
+                return res.status(400).send("Az osztályt nem lehet törölni, mert még járnak bele diákok")
+            } else {
+                sql = "DELETE FROM osztalyok WHERE id = ?";
+                con.query(sql, [id], function(err, result) {
+                    if (err) throw new Error(err);
+                    return res.status(200).send("Osztály törölve")
+                });
+            }
         })
-    } catch (error) {
-        return res.status(500).send(err);
-    }
+    })
 });
 
 app.get("/osztalyok/:id/diakok", async (req, res) => {
