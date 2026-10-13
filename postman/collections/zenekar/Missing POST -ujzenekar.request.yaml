@@ -1,0 +1,29 @@
+$kind: http-request
+name: Missing POST /ujzenekar
+description: ""
+url: http://localhost:3030/ujzenekar
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \ \"id\": 101,\r
+
+    \ \"nev\": \"\",\r
+
+    \ \"stilus_id\": 3,\r
+
+    \ \"orszag\": \"Svédország\",\r
+
+    \ \"varos\": \"Göteborg\",\r
+
+    \ \"aktiv_evek\": \"1972-1981\",\r
+
+    \ \"tagok\": \"Lars Holm, Erik Sundberg, Nils Johanson\",\r
+
+    \ \"legsikeresebb_album\": \"Twilight Machines\",\r
+
+    \ \"kep_url\": \"https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Silhouettes_of_a_band_on_stage.jpg/640px-Silhouettes_of_a_band_on_stage.jpg\"\r
+
+    }"
+order: 1064
